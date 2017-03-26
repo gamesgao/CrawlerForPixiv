@@ -1,0 +1,19 @@
+{
+  "name": "crawlerforpixiv",
+  "version": "0.0.1",
+  "description": "Try to construct a crawler for pixiv, grap some iinformation down and used for DB Project",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gamesgao/CrawlerForPixiv.git"
+  },
+  "author": "Gu Yao",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gamesgao/CrawlerForPixiv/issues"
+  },
+  "homepage": "https://github.com/gamesgao/CrawlerForPixiv#readme"
+}
