@@ -1,12 +1,13 @@
 var request = require('superagent');
 var cheerio = require('cheerio');
 var fs = require('fs');
-var db = require("mongoDB");
+
 var cookie = fs.readFileSync("Cookie.txt", "UTF8");
-// var $;
+
+var tools = {};
 
 
-function timeout(ms) {
+tools.timeout = function(ms) {
     return new Promise(function(resolve, reject) {
         setTimeout(resolve, ms);
     })
@@ -44,7 +45,7 @@ async function __getmember(userID) {
         }, err => console.log(err))
 }
 
-async function getmember(userID) {
+tools.getmember = async function(userID) {
     member = {};
     await __getmember(userID);
     return member;
@@ -70,20 +71,20 @@ async function __getBookmark(userID, index) {
             var temp = $("div.members").children("ul").children("li");
             temp.each(function(index, element) {
                 // console.log(element);
-                console.log(element.children[0].children[0].attribs["data-user_id"]);
+                // console.log(element.children[0].children[0].attribs["data-user_id"]);
                 Bookmark.push(element.children[0].children[0].attribs["data-user_id"]);
             });
 
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 48); page++) {
                     await __getBookmark(userID, page);
-                    await timeout(100);
+                    await tools.timeout(100);
                 }
             }
         }, err => console.log(err))
 }
 
-async function getBookmark(userID) {
+tools.getBookmark = async function(userID) {
     Bookmark = [];
     await __getBookmark(userID, 1);
     return Bookmark;
@@ -123,14 +124,14 @@ async function __getFriends(userID, index) {
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 18); page++) {
                     await __getFriends(userID, page);
-                    await timeout(100);
+                    await tools.timeout(100);
                 }
             }
 
             // var TrueRoomID = res.text.match(/var ROOMID = (\d*?);/)[1];
         }, err => console.log(err))
 }
-async function getFriends(userID) {
+tools.getFriends = async function(userID) {
     Friend = [];
     await __getFriends(userID, 1);
     return Friend;
@@ -167,12 +168,12 @@ async function __getAllIllust(userID, index) {
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
                     await __getAllIllust(userID, page);
-                    await timeout(100);
+                    await tools.timeout(100);
                 }
             }
         }, err => console.log(err))
 }
-async function getAllIllust(userID) {
+tools.getAllIllust = async function(userID) {
     AllIllust = [];
     await __getAllIllust(userID, 1);
     return AllIllust;
@@ -208,12 +209,12 @@ async function __getIllustBookmark(userID, index) {
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
                     await __getIllustBookmark(userID, page);
-                    await timeout(100);
+                    await tools.timeout(100);
                 }
             }
         }, err => console.log(err))
 }
-async function getIllustBookmark(userID) {
+tools.getIllustBookmark = async function(userID) {
     IllustBookmark = [];
     await __getIllustBookmark(userID, 1);
     return IllustBookmark;
@@ -221,8 +222,8 @@ async function getIllustBookmark(userID) {
 
 
 
-
-async function getIllust(illustID) {
+// 现在只是输出了tag，这里还需要改
+async function __getIllust(illustID) {
     // 投稿作品
     await request.get("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illustID)
         .timeout(3000)
@@ -249,11 +250,17 @@ async function getIllust(illustID) {
         }, err => console.log(err))
 }
 
+tools.getIllust = async function(illustID) {
+    __getIllust(illustID);
+}
+
 // 8189060
-var myID = 8189060;
-// getmember(myID).then((x) => console.log(x));
+// var myID = 8189060;
+// tools.getmember(myID).then((x) => console.log(x));
 // getBookmark(myID).then((x) => console.log(x));
 // getFriends(myID).then((x) => console.log(x));
 // getAllIllust(myID).then((x) => console.log(x));
 // getIllustBookmark(myID).then((x) => console.log(x));
-getIllust(61961488);
+// getIllust(61961488);
+
+module.exports = tools;
