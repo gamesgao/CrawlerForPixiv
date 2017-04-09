@@ -12,7 +12,12 @@ function timeout(ms) {
     })
 }
 
-async function getmember(userID) {
+function getBadge($) {
+    return $('span.count-badge').text().match(/[0-9]+/)[0];
+}
+
+var member = {};
+async function __getmember(userID) {
     // 个人简介
     await request.get("http://www.pixiv.net/member.php?id=" + userID)
         .timeout(3000)
@@ -31,19 +36,23 @@ async function getmember(userID) {
             var column1 = infoTable.children('td.td1');
             var column2 = infoTable.children('td.td2');
             for (var row = 0; row < column1.length; row++) {
-                console.log(column1.eq(row).text() + ':' + column2.eq(row).text().trim());
+                // console.log(column1.eq(row).text() + ':' + column2.eq(row).text().trim());
+                member[column1.eq(row).text()] = column2.eq(row).text().trim();
             }
 
             // var TrueRoomID = res.text.match(/var ROOMID = (\d*?);/)[1];
         }, err => console.log(err))
 }
 
-
-function getBadge($) {
-    return $('span.count-badge').text().match(/[0-9]+/)[0];
+async function getmember(userID) {
+    member = {};
+    await __getmember(userID);
+    return member;
 }
 
-async function getBookmark(userID, index) {
+
+var Bookmark = [];
+async function __getBookmark(userID, index) {
     // 关注
     await request.get("http://www.pixiv.net/bookmark.php?type=user&id=" + userID + "&rest=show&p=" + index)
         .timeout(3000)
@@ -62,18 +71,27 @@ async function getBookmark(userID, index) {
             temp.each(function(index, element) {
                 // console.log(element);
                 console.log(element.children[0].children[0].attribs["data-user_id"]);
+                Bookmark.push(element.children[0].children[0].attribs["data-user_id"]);
             });
 
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 48); page++) {
-                    await getBookmark(userID, page);
+                    await __getBookmark(userID, page);
                     await timeout(100);
                 }
             }
         }, err => console.log(err))
 }
 
-async function getFriends(userID, index) {
+async function getBookmark(userID) {
+    Bookmark = [];
+    await __getBookmark(userID, 1);
+    return Bookmark;
+}
+
+
+var Friend = [];
+async function __getFriends(userID, index) {
     // friends
 
     await request.get("http://www.pixiv.net/mypixiv_all.php?id=" + userID + '&p=' + index)
@@ -91,18 +109,20 @@ async function getFriends(userID, index) {
 
             var $ = cheerio.load(res.text);
 
-            var temp = $("ul.member-items").children("li").children("a").children('h1');
-            for (var ith = 0; ith < temp.length; ith++) {
-                console.log(temp.eq(ith).text());
-            }
-            // temp.each(function(index, element) {
-            //     // console.log(element);
-            //     console.log(element.attribs["data-user_id"]);
-            // });
+            var temp = $("ul.member-items").children("li").children("a");
+            // .children('h1')
+            // for (var ith = 0; ith < temp.length; ith++) {
+            //     console.log(temp.eq(ith).text());
+            // }
+            temp.each(function(index, element) {
+                // console.log(element);
+                // console.log(element.attribs["data-user_id"]);
+                Friend.push(element.attribs["data-user_id"]);
+            });
 
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 18); page++) {
-                    await getFriends(userID, page);
+                    await __getFriends(userID, page);
                     await timeout(100);
                 }
             }
@@ -110,9 +130,14 @@ async function getFriends(userID, index) {
             // var TrueRoomID = res.text.match(/var ROOMID = (\d*?);/)[1];
         }, err => console.log(err))
 }
+async function getFriends(userID) {
+    Friend = [];
+    await __getFriends(userID, 1);
+    return Friend;
+}
 
-
-async function getAllIllust(userID, index) {
+var AllIllust = [];
+async function __getAllIllust(userID, index) {
     // 投稿的作品
 
     await request.get("http://www.pixiv.net/member_illust.php?id=" + userID + '&type=all&p=' + index)
@@ -135,19 +160,27 @@ async function getAllIllust(userID, index) {
             // }
             illust.each(function(index, element) {
                 // console.log(element);
-                console.log(element.attribs["data-id"]);
+                // console.log(element.attribs["data-id"]);
+                AllIllust.push(element.attribs["data-id"]);
             });
 
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
-                    await getAllIllust(userID, page);
+                    await __getAllIllust(userID, page);
                     await timeout(100);
                 }
             }
         }, err => console.log(err))
 }
+async function getAllIllust(userID) {
+    AllIllust = [];
+    await __getAllIllust(userID, 1);
+    return AllIllust;
+}
 
-async function getIllustBookmark(userID, index) {
+
+var IllustBookmark = [];
+async function __getIllustBookmark(userID, index) {
     // 收藏的作品
     await request.get("http://www.pixiv.net/bookmark.php?id=" + userID + "&rest=show&p=" + index)
         .timeout(3000)
@@ -168,28 +201,33 @@ async function getIllustBookmark(userID, index) {
             var illust = $('div[data-id]', allIllust);
             illust.each(function(index, element) {
                 // console.log(element);
-                console.log(element.attribs["data-id"]);
+                // console.log(element.attribs["data-id"]);
+                IllustBookmark.push(element.attribs["data-id"]);
             });
 
             if (index == 1) {
                 for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
-                    await getIllustBookmark(userID, page);
+                    await __getIllustBookmark(userID, page);
                     await timeout(100);
                 }
             }
         }, err => console.log(err))
 }
+async function getIllustBookmark(userID) {
+    IllustBookmark = [];
+    await __getIllustBookmark(userID, 1);
+    return IllustBookmark;
+}
 
-function getIllust(illustID) {
-    // 杒画
-    request.get("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illustID)
+
+
+
+async function getIllust(illustID) {
+    // 投稿作品
+    await request.get("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illustID)
         .timeout(3000)
         .set("Cookie", cookie)
-        .end(function(err, res) {
-            if (err) {
-                console.log("Error!");
-            }
-
+        .then(function(res) {
             // fs.writeFile('./illust.html', res.text, function(err) {
             //     if (err) {
             //         console.log("Error!");
@@ -208,14 +246,14 @@ function getIllust(illustID) {
             for (var ith = 0; ith < tagText.length; ith++) {
                 console.log(tagText.eq(ith).text());
             }
-        })
+        }, err => console.log(err))
 }
 
 // 8189060
 var myID = 8189060;
-getmember(myID);
-// getBookmark(myID, 1);
-// getFriends(myID, 1);
-// getAllIllust(myID, 1);
-// getIllustBookmark(myID, 1);
-// getIllust(61961488);
+// getmember(myID).then((x) => console.log(x));
+// getBookmark(myID).then((x) => console.log(x));
+// getFriends(myID).then((x) => console.log(x));
+// getAllIllust(myID).then((x) => console.log(x));
+// getIllustBookmark(myID).then((x) => console.log(x));
+getIllust(61961488);
