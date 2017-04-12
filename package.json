@@ -19,6 +19,7 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "mongodb": "^2.2.25",
+    "mysql": "^2.13.0",
     "superagent": "^3.5.2"
   }
 }
