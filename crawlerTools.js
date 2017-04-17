@@ -5,6 +5,7 @@ var fs = require('fs');
 var cookie = fs.readFileSync("Cookie.txt", "UTF8");
 
 var tools = {};
+var threshold = 30000;
 
 
 tools.timeout = function(ms) {
@@ -21,8 +22,9 @@ var member = {};
 async function __getmember(userID) {
     // 个人简介
     await request.get("http://www.pixiv.net/member.php?id=" + userID)
-        .timeout(3000)
+        .timeout(threshold)
         .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(function(res) {
             // fs.writeFile('./member.html', res.text, function(err) {
             //     if (err) {
@@ -32,7 +34,12 @@ async function __getmember(userID) {
             // });
 
             var $ = cheerio.load(res.text);
-            // 读出剝几个坑表的作哝
+            // 读取用户ID
+            var Username = $('h1.user').text();
+            console.log("Username:" + Username);
+            member["Username"] = Username;
+
+            // 读取用户表格内容
             var infoTable = $('table.ws_table').children('tr');
             var column1 = infoTable.children('td.td1');
             var column2 = infoTable.children('td.td2');
@@ -41,7 +48,23 @@ async function __getmember(userID) {
                 member[column1.eq(row).text()] = column2.eq(row).text().trim();
             }
 
-            // var TrueRoomID = res.text.match(/var ROOMID = (\d*?);/)[1];
+            // 读取用户头像
+            // 保存成文件后将文件名保存到数据库中
+            var imgUrl = $('img.user-image').attr("src");
+            request.get(imgUrl)
+                .timeout(threshold)
+                .set("Cookie", cookie)
+                .set("Referer", "http://www.pixiv.net/member.php?id=" + userID)
+                .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
+                .then(function(res) {
+                    fs.writeFile(`./header/${userID}.png`, res.body, function(err) {
+                        if (err) {
+                            console.log("Error!");
+                        }
+                        console.log('Image Saved.');
+                    })
+                }, err => console.log(err));
+            member["header"] = `./header/${userID}.png`;
         }, err => console.log(err))
 }
 
@@ -56,8 +79,9 @@ var Bookmark = [];
 async function __getBookmark(userID, index) {
     // 关注
     await request.get("http://www.pixiv.net/bookmark.php?type=user&id=" + userID + "&rest=show&p=" + index)
-        .timeout(3000)
+        .timeout(threshold)
         .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(async function(res) {
             // fs.writeFile('./bookmark.html', res.text, function(err) {
             //     if (err) {
@@ -96,8 +120,9 @@ async function __getFriends(userID, index) {
     // friends
 
     await request.get("http://www.pixiv.net/mypixiv_all.php?id=" + userID + '&p=' + index)
-        .timeout(3000)
+        .timeout(threshold)
         .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(async function(res) {
 
 
@@ -142,8 +167,9 @@ async function __getAllIllust(userID, index) {
     // 投稿的作品
 
     await request.get("http://www.pixiv.net/member_illust.php?id=" + userID + '&type=all&p=' + index)
-        .timeout(3000)
+        .timeout(threshold)
         .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(async function(res) {
             // fs.writeFile('./member_illust.html', res.text, function(err) {
             //     if (err) {
@@ -164,13 +190,13 @@ async function __getAllIllust(userID, index) {
                 // console.log(element.attribs["data-id"]);
                 AllIllust.push(element.attribs["data-id"]);
             });
-
-            if (index == 1) {
-                for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
-                    await __getAllIllust(userID, page);
-                    await tools.timeout(100);
-                }
-            }
+            // //递归获得所有
+            // if (index == 1) {
+            //     for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
+            //         await __getAllIllust(userID, page);
+            //         await tools.timeout(100);
+            //     }
+            // }
         }, err => console.log(err))
 }
 tools.getAllIllust = async function(userID) {
@@ -184,8 +210,9 @@ var IllustBookmark = [];
 async function __getIllustBookmark(userID, index) {
     // 收藏的作品
     await request.get("http://www.pixiv.net/bookmark.php?id=" + userID + "&rest=show&p=" + index)
-        .timeout(3000)
+        .timeout(threshold)
         .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(async function(res) {
             console.log(index);
 
@@ -205,13 +232,13 @@ async function __getIllustBookmark(userID, index) {
                 // console.log(element.attribs["data-id"]);
                 IllustBookmark.push(element.attribs["data-id"]);
             });
-
-            if (index == 1) {
-                for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
-                    await __getIllustBookmark(userID, page);
-                    await tools.timeout(100);
-                }
-            }
+            // // 递归获得所有
+            // if (index == 1) {
+            //     for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
+            //         await __getIllustBookmark(userID, page);
+            //         await tools.timeout(100);
+            //     }
+            // }
         }, err => console.log(err))
 }
 tools.getIllustBookmark = async function(userID) {
@@ -226,8 +253,9 @@ tools.getIllustBookmark = async function(userID) {
 async function __getIllust(illustID) {
     // 投稿作品
     await request.get("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illustID)
-        .timeout(3000)
+        .timeout(threshold)
         .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(function(res) {
             // fs.writeFile('./illust.html', res.text, function(err) {
             //     if (err) {
@@ -245,13 +273,50 @@ async function __getIllust(illustID) {
             var tagText = $('a.text', tags);
 
             for (var ith = 0; ith < tagText.length; ith++) {
-                console.log(tagText.eq(ith).text());
+                // console.log(tagText.eq(ith).text());
             }
         }, err => console.log(err))
 }
 
 tools.getIllust = async function(illustID) {
     __getIllust(illustID);
+}
+
+var AllTag = {};
+async function __getAllTag(userID) {
+    // 用户tag
+    await request.get("http://www.pixiv.net/member_tag_all.php?id=" + userID)
+        .timeout(threshold)
+        .set("Cookie", cookie)
+        .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
+        .then(function(res) {
+            // fs.writeFile('./test.html', res.text, function(err) {
+            //     if (err) {
+            //         console.log("Error!");
+            //     }
+            //     console.log('Saved.');
+            // });
+
+            var $ = cheerio.load(res.text);
+            var tagList = $('dl.tag-list').children('dt');
+            tagList.each(function(index, element) {
+                // console.log(element.children[0].data);
+                var temp = [];
+                for (var tag = 0; tag < $("a.tag-name", tagList.next("dd").eq(index)).length; tag++) {
+                    var tagName = $("a.tag-name", tagList.next("dd").eq(index)).eq(tag).text();
+                    // console.log(tagName);
+                    temp.push(tagName);
+                }
+                AllTag[element.children[0].data] = temp.slice(0);
+            })
+
+        }, err => console.log(err))
+}
+
+tools.getAllTag = async function(userID) {
+    AllTag = {};
+    await __getAllTag(userID);
+    return AllTag;
 }
 
 // 8189060

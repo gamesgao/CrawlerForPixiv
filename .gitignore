@@ -41,3 +41,6 @@ test*
 member.*
 Cookie.*
 *.html
+
+#header
+header/

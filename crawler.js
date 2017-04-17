@@ -1,4 +1,5 @@
 var tools = require('./crawlerTools');
+var fs = require('fs');
 // var db = require('./mongoDB')
 var userQueue = [];
 var illustQueue = [];
@@ -12,17 +13,34 @@ async function main() {
         var x = await tools.getmember(ID);
         result = x;
 
+        x = await tools.getAllTag(ID);
+        result["tag"] = x;
+
         x = await tools.getBookmark(ID);
-        while (x.length != 0) userQueue.push(x.shift());
+        result["bookmark"] = x.slice(0);
+        // while (x.length != 0) userQueue.push(x.shift());
 
         x = await tools.getFriends(ID);
-        while (x.length != 0) userQueue.push(x.shift());
+        result["friends"] = x.slice(0);
+        // while (x.length != 0) userQueue.push(x.shift());
 
         x = await tools.getAllIllust(ID);
-        while (x.length != 0) illustQueue.push(x.shift());
-        // console.log(result);
-        // console.log(userQueue);
-        // console.log(illustQueue);
+        result["Allillust"] = x.slice(0);
+        // while (x.length != 0) illustQueue.push(x.shift());
+
+        x = await tools.getIllustBookmark(ID);
+        result["illustBookmark"] = x.slice(0);
+        // while (x.length != 0) illustQueue.push(x.shift());
+
+        // x = await tools.getIllust(ID);
+        fs.writeFile("test.txt", JSON.stringify(result), function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Saved.');
+            })
+            // console.log(userQueue);
+            // console.log(illustQueue);
     }
 }
 
