@@ -43,4 +43,6 @@ Cookie.*
 *.html
 
 #header
-header/
+/header/*
+!/header/placeholder
+
