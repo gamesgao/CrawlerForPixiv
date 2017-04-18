@@ -273,7 +273,7 @@ async function __getIllust(illustID) {
             var tagText = $('a.text', tags);
 
             for (var ith = 0; ith < tagText.length; ith++) {
-                // console.log(tagText.eq(ith).text());
+                console.log(tagText.eq(ith).text());
             }
         }, err => console.log(err))
 }

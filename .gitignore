@@ -45,4 +45,5 @@ Cookie.*
 #header
 /header/*
 !/header/placeholder
-
+/illust/*
+!/illust/placeholder
