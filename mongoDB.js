@@ -11,9 +11,9 @@ MongoClient.connect(DB_CONN_STR, function(err, db) {
         return;
     }
     console.log(DB_CONN_STR + "连接成功！");
-    dbClient.insert = function(obj) {
+    dbClient.insert = function(obj, collname) {
         //连接到表  
-        var collection = db.collection('user');
+        var collection = db.collection(collname);
         collection.insert(obj, function(err, result) {
             if (err) {
                 console.log('Error:' + err);

@@ -46,8 +46,7 @@ async function main() {
         //         console.log('Saved.');
         //     })
 
-        db.insert(result);
-
+        db.insert(result, 'user');
     }
 }
 

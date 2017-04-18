@@ -214,7 +214,7 @@ async function __getIllustBookmark(userID, index) {
         .set("Cookie", cookie)
         .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(async function(res) {
-            console.log(index);
+
 
             // fs.writeFile('./bookmarkIllust.html', res.text, function(err) {
             //     if (err) {
@@ -233,6 +233,7 @@ async function __getIllustBookmark(userID, index) {
                 IllustBookmark.push(element.attribs["data-id"]);
             });
             // // 递归获得所有
+            // console.log(index);
             // if (index == 1) {
             //     for (var page = 2; page <= Math.ceil(getBadge($) / 20); page++) {
             //         await __getIllustBookmark(userID, page);
