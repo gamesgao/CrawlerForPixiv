@@ -249,7 +249,8 @@ tools.getIllustBookmark = async function(userID) {
 
 
 
-// 现在只是输出了tag，这里还需要改
+// 汇总画的信息
+var illust = {};
 async function __getIllust(illustID) {
     // 投稿作品
     await request.get("http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illustID)
@@ -257,29 +258,66 @@ async function __getIllust(illustID) {
         .set("Cookie", cookie)
         .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
         .then(function(res) {
-            // fs.writeFile('./illust.html', res.text, function(err) {
-            //     if (err) {
-            //         console.log("Error!");
-            //     }
-            //     console.log('Saved.');
-            // });
+            fs.writeFile('./test.html', res.text, function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Saved.');
+            });
 
             var $ = cheerio.load(res.text);
-            var viewCount = $('dd.view-count').text();
-            var ratedCount = $('dd.rated-count').text();
-            var scoreCount = $('dd.score-count').text();
-            var title = $('h1.title').eq(2).text();
-            var tags = $('li.tag');
-            var tagText = $('a.text', tags);
-
-            for (var ith = 0; ith < tagText.length; ith++) {
-                console.log(tagText.eq(ith).text());
+            // 作者
+            // var userName = $('h1.user').text();
+            illust["userID"] = $('a.user-link').attr('href').match(/[0-9]+/)[0];
+            // 浏览量
+            illust["viewCount"] = $('dd.view-count').text();
+            // 赞数
+            illust["ratedCount"] = $('dd.rated-count').text();
+            // 题目
+            illust["title"] = $('section.work-info').children("h1.title").text();
+            // 作画时间
+            illust["time"] = $('section.work-info').children("ul.meta").children("li").eq(0).text();
+            // 分辨率
+            var resolution = $('section.work-info').children("ul.meta").children("li").eq(1).text();
+            var pages = 1;
+            if (resolution.match(/P/) != null) {
+                pages = resolution.match(/[0-9]+/)[0];
+                resolution = "0×0";
             }
+            illust["resolution"] = resolution;
+            illust["pages"] = pages;
+            // 作画工具
+            illust["paintTools"] = $('section.work-info').children("ul.meta").children("li").children("ul.tools").text();
+            // tags
+            var tagText = $('a.text', $('li.tag'));
+            var tags = [];
+            for (var ith = 0; ith < tagText.length; ith++) {
+                // console.log(tagText.eq(ith).text());
+                tags.push(tagText.eq(ith).text());
+            }
+            illust["tags"] = tags.slice(0);
+            var imgUrl = $('div._layout-thumbnail').children("img").attr('src');
+            request.get(imgUrl)
+                .timeout(threshold)
+                .set("Cookie", cookie)
+                .set("Referer", "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illustID)
+                .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
+                .then(function(res) {
+                    fs.writeFile(`./illust/${illustID}.png`, res.body, function(err) {
+                        if (err) {
+                            console.log("Error!");
+                        }
+                        console.log('Image Saved.');
+                    })
+                }, err => console.log(err));
+            illust["img"] = `./illust/${illustID}.png`;
         }, err => console.log(err))
 }
 
 tools.getIllust = async function(illustID) {
-    __getIllust(illustID);
+    illust = {};
+    await __getIllust(illustID);
+    return illust;
 }
 
 var AllTag = {};

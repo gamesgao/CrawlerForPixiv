@@ -1,48 +1,95 @@
 var tools = require('./crawlerTools');
 var fs = require('fs');
-// var db = require('./mongoDB')
+var db = require('./mongoDB');
+
 var userQueue = [];
 var illustQueue = [];
 var result;
 var ID = 8189060;
 
 async function main() {
+    console.log(userQueue);
+    console.log(illustQueue);
     while (userQueue.length != 0) {
         ID = userQueue.shift();
         console.log(ID);
-        var x = await tools.getmember(ID);
-        result = x;
+        result = await tools.getmember(ID);
 
-        x = await tools.getAllTag(ID);
-        result["tag"] = x;
+        var AllTagPromise = tools.getAllTag(ID);
+        var BookmarkPromise = tools.getBookmark(ID);
+        var FriendsPromise = tools.getFriends(ID);
+        var AllillustPromise = tools.getAllIllust(ID);
+        var IllustBookmarkPromise = tools.getIllustBookmark(ID);
 
-        x = await tools.getBookmark(ID);
-        result["bookmark"] = x.slice(0);
-        // while (x.length != 0) userQueue.push(x.shift());
+        result["tag"] = await AllTagPromise;
+        var temp = await BookmarkPromise;
+        result["bookmark"] = temp.slice(0);
+        while (temp.length != 0) userQueue.push(temp.shift());
 
-        x = await tools.getFriends(ID);
-        result["friends"] = x.slice(0);
-        // while (x.length != 0) userQueue.push(x.shift());
+        temp = await FriendsPromise;
+        result["friends"] = temp.slice(0);
+        while (temp.length != 0) userQueue.push(temp.shift());
 
-        x = await tools.getAllIllust(ID);
-        result["Allillust"] = x.slice(0);
-        // while (x.length != 0) illustQueue.push(x.shift());
+        temp = await AllillustPromise;
+        result["Allillust"] = temp.slice(0);
+        while (temp.length != 0) illustQueue.push(temp.shift());
 
-        x = await tools.getIllustBookmark(ID);
-        result["illustBookmark"] = x.slice(0);
-        // while (x.length != 0) illustQueue.push(x.shift());
+        temp = await IllustBookmarkPromise;
+        result["illustBookmark"] = temp.slice(0);
+        while (temp.length != 0) illustQueue.push(temp.shift());
 
         // x = await tools.getIllust(ID);
-        fs.writeFile("test.txt", JSON.stringify(result), function(err) {
-                if (err) {
-                    console.log("Error!");
-                }
-                console.log('Saved.');
-            })
-            // console.log(userQueue);
-            // console.log(illustQueue);
+        // fs.writeFile("test.txt", JSON.stringify(result), function(err) {
+        //         if (err) {
+        //             console.log("Error!");
+        //         }
+        //         console.log('Saved.');
+        //     })
+
+        db.insert(result);
+
     }
 }
 
-userQueue.push(ID);
+
+if (process.platform === "win32") {
+    var rl = require("readline").createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.on("SIGINT", function() {
+        process.emit("SIGINT");
+    });
+}
+
+process.on("SIGINT", function() {
+    //graceful shutdown
+    fs.writeFileSync("illustQueue.txt", JSON.stringify(illustQueue), function(err) {
+        if (err) {
+            console.log("Error!");
+        }
+        console.log('Saved.');
+    });
+    fs.writeFileSync("userQueue.txt", JSON.stringify(userQueue), function(err) {
+        if (err) {
+            console.log("Error!");
+        }
+        console.log('Saved.');
+    });
+    process.exit();
+});
+
+if (fs.existsSync("illustQueue.txt")) {
+    var illJSON = fs.readFileSync("illustQueue.txt", "UTF8");
+    illustQueue = JSON.parse(illJSON);
+}
+
+if (fs.existsSync("userQueue.txt")) {
+    var userJSON = fs.readFileSync("userQueue.txt", "UTF8");
+    userQueue = JSON.parse(userJSON);
+} else {
+    userQueue.push(ID);
+}
+
 main();

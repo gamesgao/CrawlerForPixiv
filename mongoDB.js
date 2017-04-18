@@ -2,7 +2,7 @@ var MongoClient = require('mongodb').MongoClient;
 
 // 修改这里的用户名和密码
 // var DB_CONN_STR = 'mongodb://133.130.116.215:27017/pm';
-var DB_CONN_STR = 'mongodb://127.0.0.1:27017';
+var DB_CONN_STR = 'mongodb://127.0.0.1:27017/Pixiv';
 var dbClient = {};
 
 MongoClient.connect(DB_CONN_STR, function(err, db) {
@@ -13,7 +13,7 @@ MongoClient.connect(DB_CONN_STR, function(err, db) {
     console.log(DB_CONN_STR + "连接成功！");
     dbClient.insert = function(obj) {
         //连接到表  
-        var collection = db.collection('data');
+        var collection = db.collection('user');
         collection.insert(obj, function(err, result) {
             if (err) {
                 console.log('Error:' + err);
@@ -25,7 +25,7 @@ MongoClient.connect(DB_CONN_STR, function(err, db) {
     };
     dbClient.find = function(obj, lowerBound, count, callback) {
         //连接到表  
-        var collection = db.collection('data');
+        var collection = db.collection('user');
         // console.log(lowerBound);
         // console.log(count);
         collection.find(obj).skip(lowerBound).limit(count).toArray(function(err, result) {
@@ -40,7 +40,7 @@ MongoClient.connect(DB_CONN_STR, function(err, db) {
     };
     dbClient.checkStatus = function(callback) {
         //连接到表  
-        var collection = db.collection('data');
+        var collection = db.collection('user');
         collection.stats(function(err, stats) {
             if (err) {
                 console.log('Error:' + err);
