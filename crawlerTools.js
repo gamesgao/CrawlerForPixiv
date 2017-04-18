@@ -34,10 +34,11 @@ async function __getmember(userID) {
             // });
 
             var $ = cheerio.load(res.text);
-            // 读取用户ID
+            member["userID"] = userID;
+            // 读取用户昵称
             var Username = $('h1.user').text();
             console.log("Username:" + Username);
-            member["Username"] = Username;
+            member["username"] = Username;
 
             // 读取用户表格内容
             var infoTable = $('table.ws_table').children('tr');

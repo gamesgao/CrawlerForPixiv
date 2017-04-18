@@ -14,7 +14,6 @@ async function main() {
         ID = userQueue.shift();
         console.log(ID);
         result = await tools.getmember(ID);
-
         var AllTagPromise = tools.getAllTag(ID);
         var BookmarkPromise = tools.getBookmark(ID);
         var FriendsPromise = tools.getFriends(ID);
@@ -31,7 +30,7 @@ async function main() {
         while (temp.length != 0) userQueue.push(temp.shift());
 
         temp = await AllillustPromise;
-        result["Allillust"] = temp.slice(0);
+        result["allIllust"] = temp.slice(0);
         while (temp.length != 0) illustQueue.push(temp.shift());
 
         temp = await IllustBookmarkPromise;
