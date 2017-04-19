@@ -18,6 +18,7 @@ function getBadge($) {
     return $('span.count-badge').text().match(/[0-9]+/)[0];
 }
 
+
 var member = {};
 async function __getmember(userID) {
     // 个人简介
@@ -66,7 +67,15 @@ async function __getmember(userID) {
                     })
                 }, err => console.log(err));
             member["header"] = `./header/${userID}.png`;
-        }, err => console.log(err))
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("err.txt", userID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Err Saved.');
+            });
+        })
 }
 
 tools.getmember = async function(userID) {
@@ -99,14 +108,22 @@ async function __getBookmark(userID, index) {
                 // console.log(element.children[0].children[0].attribs["data-user_id"]);
                 Bookmark.push(element.children[0].children[0].attribs["data-user_id"]);
             });
-
-            if (index == 1) {
-                for (var page = 2; page <= Math.ceil(getBadge($) / 48); page++) {
-                    await __getBookmark(userID, page);
-                    await tools.timeout(100);
+            // // 递归抓取所有项
+            // if (index == 1) {
+            //     for (var page = 2; page <= Math.ceil(getBadge($) / 48); page++) {
+            //         await __getBookmark(userID, page);
+            //         await tools.timeout(100);
+            //     }
+            // }
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("err.txt", userID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
                 }
-            }
-        }, err => console.log(err))
+                console.log('Err Saved.');
+            });
+        })
 }
 
 tools.getBookmark = async function(userID) {
@@ -146,16 +163,24 @@ async function __getFriends(userID, index) {
                 // console.log(element.attribs["data-user_id"]);
                 Friend.push(element.attribs["data-user_id"]);
             });
-
-            if (index == 1) {
-                for (var page = 2; page <= Math.ceil(getBadge($) / 18); page++) {
-                    await __getFriends(userID, page);
-                    await tools.timeout(100);
-                }
-            }
+            // // 递归抓取所有项
+            // if (index == 1) {
+            //     for (var page = 2; page <= Math.ceil(getBadge($) / 18); page++) {
+            //         await __getFriends(userID, page);
+            //         await tools.timeout(100);
+            //     }
+            // }
 
             // var TrueRoomID = res.text.match(/var ROOMID = (\d*?);/)[1];
-        }, err => console.log(err))
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("err.txt", userID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Err Saved.');
+            });
+        })
 }
 tools.getFriends = async function(userID) {
     Friend = [];
@@ -198,7 +223,15 @@ async function __getAllIllust(userID, index) {
             //         await tools.timeout(100);
             //     }
             // }
-        }, err => console.log(err))
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("err.txt", userID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Err Saved.');
+            });
+        })
 }
 tools.getAllIllust = async function(userID) {
     AllIllust = [];
@@ -241,7 +274,15 @@ async function __getIllustBookmark(userID, index) {
             //         await tools.timeout(100);
             //     }
             // }
-        }, err => console.log(err))
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("err.txt", userID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Err Saved.');
+            });
+        })
 }
 tools.getIllustBookmark = async function(userID) {
     IllustBookmark = [];
@@ -313,7 +354,15 @@ async function __getIllust(illustID) {
                     })
                 }, err => console.log(err));
             illust["img"] = `./illust/${illustID}.png`;
-        }, err => console.log(err))
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("errIllust.txt", illustID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Err Saved.');
+            });
+        })
 }
 
 tools.getIllust = async function(illustID) {
@@ -350,7 +399,15 @@ async function __getAllTag(userID) {
                 AllTag[element.children[0].data] = temp.slice(0);
             })
 
-        }, err => console.log(err))
+        }, function(err) {
+            console.log(err);
+            fs.appendFile("err.txt", userID + "\n", function(err) {
+                if (err) {
+                    console.log("Error!");
+                }
+                console.log('Err Saved.');
+            });
+        })
 }
 
 tools.getAllTag = async function(userID) {

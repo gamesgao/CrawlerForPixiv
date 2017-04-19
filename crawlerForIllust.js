@@ -8,18 +8,18 @@ var result;
 async function main() {
     console.log(illustQueue);
     while (illustQueue.length != 0) {
-        ID = illustQueue.shift();
+        ID = illustQueue[0];
         console.log(ID);
         result = await tools.getIllust(ID);
         result["illustID"] = ID;
-        fs.writeFile("test.txt", JSON.stringify(result), function(err) {
-            if (err) {
-                console.log("Error!");
-            }
-            console.log('Saved.');
-        });
-
+        // fs.writeFile("test.txt", JSON.stringify(result), function(err) {
+        //     if (err) {
+        //         console.log("Error!");
+        //     }
+        //     console.log('Saved.');
+        // });
         db.insert(result, 'illust');
+        illustQueue.shift();
     }
 }
 

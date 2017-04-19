@@ -4,6 +4,7 @@ var db = require('./mongoDB');
 
 var userQueue = [];
 var illustQueue = [];
+var hash = {};
 var result;
 var ID = 8189060;
 
@@ -11,7 +12,11 @@ async function main() {
     console.log(userQueue);
     console.log(illustQueue);
     while (userQueue.length != 0) {
-        ID = userQueue.shift();
+        ID = userQueue[0];
+        if (hash[ID] == 1) {
+            userQueue.shift();
+            continue;
+        }
         console.log(ID);
         result = await tools.getmember(ID);
         var AllTagPromise = tools.getAllTag(ID);
@@ -36,16 +41,8 @@ async function main() {
         temp = await IllustBookmarkPromise;
         result["illustBookmark"] = temp.slice(0);
         while (temp.length != 0) illustQueue.push(temp.shift());
-
-        // x = await tools.getIllust(ID);
-        // fs.writeFile("test.txt", JSON.stringify(result), function(err) {
-        //         if (err) {
-        //             console.log("Error!");
-        //         }
-        //         console.log('Saved.');
-        //     })
-
         db.insert(result, 'user');
+        hash[userQueue.shift()] = 1;
     }
 }
 
@@ -75,12 +72,23 @@ process.on("SIGINT", function() {
         }
         console.log('Saved.');
     });
+    fs.writeFileSync("hash.txt", JSON.stringify(hash), function(err) {
+        if (err) {
+            console.log("Error!");
+        }
+        console.log('Saved.');
+    });
     process.exit();
 });
 
 if (fs.existsSync("illustQueue.txt")) {
     var illJSON = fs.readFileSync("illustQueue.txt", "UTF8");
     illustQueue = JSON.parse(illJSON);
+}
+
+if (fs.existsSync("hash.txt")) {
+    var hashJSON = fs.readFileSync("hash.txt", "UTF8");
+    hash = JSON.parse(hashJSON);
 }
 
 if (fs.existsSync("userQueue.txt")) {
