@@ -3,12 +3,17 @@ var fs = require('fs');
 var db = require('./mongoDB');
 
 var illustQueue = [];
+var hashIllust = {};
 var result;
 
 async function main() {
     console.log(illustQueue);
     while (illustQueue.length != 0) {
         ID = illustQueue[0];
+        if (hashIllust[ID] == 1) {
+            illustQueue.shift();
+            continue;
+        }
         console.log(ID);
         result = await tools.getIllust(ID);
         result["illustID"] = ID;
@@ -19,7 +24,7 @@ async function main() {
         //     console.log('Saved.');
         // });
         db.insert(result, 'illust');
-        illustQueue.shift();
+        hashIllust[illustQueue.shift()] = 1;
     }
 }
 
@@ -43,8 +48,19 @@ process.on("SIGINT", function() {
         }
         console.log('Saved.');
     });
+    fs.writeFileSync("hashIllust.txt", JSON.stringify(hashIllust), function(err) {
+        if (err) {
+            console.log("Error!");
+        }
+        console.log('Saved.');
+    });
     process.exit();
 });
+
+if (fs.existsSync("hashIllust.txt")) {
+    var hashJSON = fs.readFileSync("hashIllust.txt", "UTF8");
+    hashIllust = JSON.parse(hashJSON);
+}
 
 if (fs.existsSync("illustQueue.txt")) {
     var illJSON = fs.readFileSync("illustQueue.txt", "UTF8");
